@@ -76,6 +76,7 @@ sap.ui.define([
             var oView = this.getView();
 
             if (!this._oDialog) {
+                this._oInputId = new Input({ id: oView.createId("dlgId"), editable: false });
                 this._oInputNome = new Input({ id: oView.createId("dlgNome"), placeholder: "Nome do material" });
                 this._oInputDescr = new Input({ id: oView.createId("dlgDescr"), placeholder: "Descrição do material" });
 
@@ -84,6 +85,8 @@ sap.ui.define([
                     content: new VBox({
                         class: "sapUiSmallMargin",
                         items: [
+                            new Label({ text: "ID (gerado automaticamente)" }),
+                            this._oInputId,
                             new Label({ text: "Nome", required: true }),
                             this._oInputNome,
                             new Label({ text: "Descrição", required: true }),
@@ -103,6 +106,15 @@ sap.ui.define([
 
                 oView.addDependent(this._oDialog);
             }
+
+            // Busca o próximo ID antes de abrir
+            var that = this;
+            fetch("/material/Material?$orderby=ID desc&$top=1")
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    var ultimo = data.value && data.value.length > 0 ? data.value[0].ID : 0;
+                    that._oInputId.setValue(ultimo + 1);
+                });
 
             this._oInputNome.setValue("");
             this._oInputDescr.setValue("");
